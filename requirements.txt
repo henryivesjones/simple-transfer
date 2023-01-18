@@ -1,2 +1,3 @@
 psycopg2
 smart_open
+mysql-connector-python

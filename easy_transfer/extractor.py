@@ -11,6 +11,15 @@ from easy_transfer.connection import Connection
 
 
 class Extractor:
+    """
+    Extracts a given table from a `Connection` to a `CSV` file and `DDL` json file.
+    Should be called using a `with` statement:
+    ```
+    with Extractor(...) as e:
+        e.extract()
+    ```
+    """
+
     csv_file: TextIO
     ddl_file: TextIO
 
@@ -21,10 +30,21 @@ class Extractor:
         table: str,
         destination: str,
         transport_params: Optional[dict] = None,
+        where_clause: str = "",
     ):
+        """
+        Parameters:
+            connection (Connection):  The connection from which to extract the table.
+            schema (str) : The schema from which to extract the table within the db.
+            table (str) : The table from which to extract data from.
+            destination (str) : An intermediate directory to place the extracted data in. This can be a relative path, a absolute path, or a remote path (s3).
+            transport_params (dict) : A dict which is passed through to `smart_open.open` `transport_params` argument. (Optional)
+            where_clause (str) : An optional where clause which will be used to filter the table extraction query.
+        """
         self.connection = connection
         self.schema = schema
         self.table = table
+        self.where_clause = where_clause
         self.csv_destination = os.path.join(
             destination, f"{schema.lower()}__{table.lower()}.csv"
         )
@@ -56,18 +76,23 @@ class Extractor:
             logging.info(f"Closed file `{self.ddl_destination}`")
 
     def extract(self):
+        """
+        Executes the extraction.
+        """
         if EASY_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Extracting columns from information schema for `{self.schema}`.`{self.table}`"
             )
         columns = self.connection.extract_table_ddl(self.schema, self.table)
-        self.ddl_file.write(json.dumps([c.to_dict() for c in columns]))
+        self.ddl_file.write(json.dumps([c.to_dict() for c in columns], default=str))
         if EASY_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Extracting data from `{self.schema}`.`{self.table}` to `{self.csv_destination}`"
             )
         writer = csv.writer(self.csv_file, delimiter=",")
-        rows_generator = self.connection.extract_table(self.schema, self.table)
+        rows_generator = self.connection.extract_table(
+            self.schema, self.table, where_clause=self.where_clause
+        )
         writer.writerow([c.name for c in columns])
         for row in rows_generator:
             writer.writerow(row)

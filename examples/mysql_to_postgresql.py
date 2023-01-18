@@ -1,16 +1,16 @@
 import logging
 
-from easy_transfer import Pipeline, PostgreSQLConnection
+from easy_transfer import MySQLConnection, Pipeline, PostgreSQLConnection
 
 logging.basicConfig(level=logging.INFO)
 
 
-source_connection = PostgreSQLConnection(
+source_connection = MySQLConnection(
     host="source-database.xxx.us-east-1.rds.amazonaws.com",
-    port=5432,
+    port=3306,
     username="<username>",
     password="<password>",
-    db="postgres",
+    db="my_db",
 )
 
 destination_connection = PostgreSQLConnection(
@@ -23,7 +23,7 @@ destination_connection = PostgreSQLConnection(
 
 pipeline = Pipeline(
     source_connection=source_connection,
-    source_schema="public",
+    source_schema="my_db",
     source_table="source_table",
     destination_connection=destination_connection,
     destination_schema="public",

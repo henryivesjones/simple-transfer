@@ -11,6 +11,15 @@ from easy_transfer.connection import Column, Connection
 
 
 class Injector:
+    """
+    Injects extracted data into a destination database table.
+    Should be called using a `with` statement:
+    ```
+    with Injector(...) as i:
+        i.inject('overwrite')
+    ```
+    """
+
     ddl_file: TextIO
     csv_file: TextIO
 
@@ -23,6 +32,15 @@ class Injector:
         source_ddl_location: str,
         transport_params: Optional[dict] = None,
     ):
+        """
+        Parameters:
+            connection (Connection):  The connection with which to inject the table.
+            schema (str) : The schema to inject the data within the db.
+            table (str) : The table to inject the extract data into.
+            source_csv_location (str): The path to the CSV file which will be loaded into the db. This can be a relative path, a absolute path, or a remote path (s3).
+            source_ddl_location (str): The path to the DDL JSON file which will define the table in the db. This can be a relative path, a absolute path, or a remote path (s3).
+            transport_params (dict) : A dict which is passed through to `smart_open.open` `transport_params` argument. (Optional)
+        """
         self.connection = connection
         self.schema = schema
         self.table = table
@@ -53,6 +71,13 @@ class Injector:
             logging.info(f"Closed file `{self.source_ddl_location}`")
 
     def inject(self, mode: Literal["overwrite", "append", "swap"] = "overwrite"):
+        """
+        Executes the injection into the database.
+        Modes:
+         - overwrite: This mode will drop and recreate the table if it exists before inserting the data into it.
+         - append: This mode will create the table if it doesn't exist, and then insert the data into it.
+         - swap: This mode will create a swap table and insert the data into it. Then in a transaction it will swap the names of the swap table and existing table.
+        """
         columns = [Column(**c) for c in json.loads(self.ddl_file.read())]
         if mode == "swap":
             swap_id = uuid4().hex[:12]
@@ -69,6 +94,13 @@ class Injector:
                 )
             )
             self.connection.import_csv(self.schema, swap_table, self.csv_file)
+            self.connection.execute(
+                self.connection.generate_create_table_statement(
+                    self.schema,
+                    self.table,
+                    columns,
+                )
+            )
             if EASY_TRANSFER_CONFIG.VERBOSE:
                 logging.info(
                     f"Performing swap from `{self.schema}`.`{swap_table}` to `{self.schema}`.`{self.table}`"

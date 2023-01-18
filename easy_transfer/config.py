@@ -1,6 +1,6 @@
 class EasyTransferConfig:
-    VERBOSE: bool = False
-    BATCH_SIZE: int = 5000
+    VERBOSE: bool = True
+    BATCH_SIZE: int = 50_000
 
 
 EASY_TRANSFER_CONFIG = EasyTransferConfig()

@@ -1,0 +1,31 @@
+[project]
+name = "easy-transfer"
+version = "0.1.1"
+authors = [
+  { name="Henry Jones", email="henryivesjones@gmail.com" },
+]
+description = "A tool for moving data between relational databases."
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "psycopg2",
+    "smart_open",
+    "mysql-connector-python"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+keywords = [
+  "pipeline",
+  "postgresql",
+  "mysql",
+  "data-transfer",
+  "relational",
+  "data"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
