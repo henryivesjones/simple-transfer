@@ -1,6 +1,6 @@
 import logging
 
-from easy_transfer import Pipeline, PostgreSQLConnection
+from simple_transfer import Pipeline, PostgreSQLConnection
 
 logging.basicConfig(level=logging.INFO)
 

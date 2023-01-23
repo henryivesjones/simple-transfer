@@ -5,9 +5,8 @@ from typing import Literal, Optional, TextIO, Union
 from uuid import uuid4
 
 import smart_open
-
-from easy_transfer.config import EASY_TRANSFER_CONFIG
-from easy_transfer.connection import Column, Connection
+from simple_transfer.config import SIMPLE_TRANSFER_CONFIG
+from simple_transfer.connection import Column, Connection
 
 
 class Injector:
@@ -53,12 +52,12 @@ class Injector:
         self.csv_file = smart_open.open(
             self.source_csv_location, "r", transport_params=self.transport_params
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Opened file `{self.source_csv_location}`")
         self.ddl_file = smart_open.open(
             self.source_ddl_location, "r", transport_params=self.transport_params
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Opened file `{self.source_ddl_location}`")
         return self
 
@@ -66,7 +65,7 @@ class Injector:
         self.connection.close()
         self.csv_file.close()
         self.ddl_file.close()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Closed file `{self.source_csv_location}`")
             logging.info(f"Closed file `{self.source_ddl_location}`")
 
@@ -83,7 +82,7 @@ class Injector:
             swap_id = uuid4().hex[:12]
             swap_table = f"{self.table}__{swap_id}"
             old_table = f"{self.table}__old"
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(
                     f"Creating and inserting data into swap table `{self.schema}`.`{swap_table}`"
                 )
@@ -101,7 +100,7 @@ class Injector:
                     columns,
                 )
             )
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(
                     f"Performing swap from `{self.schema}`.`{swap_table}` to `{self.schema}`.`{self.table}`"
                 )
@@ -121,12 +120,12 @@ class Injector:
             )
             return
         if mode == "overwrite":
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(f"Dropping table `{self.schema}`.`{self.table}`")
             self.connection.execute(
                 self.connection.generate_drop_table_statement(self.schema, self.table)
             )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Creating and inserting data into table `{self.schema}`.`{self.table}`"
             )

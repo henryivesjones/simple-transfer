@@ -1,12 +1,14 @@
-# easy-transfer
-Easy data transfers between relational databases. Specify the source/destination connection, schema, and table and easy-transfer does the rest.
+# simple-transfer
+Easy data transfers between relational databases. Specify the source/destination connection, schema, and table and simple-transfer does the rest.
 
 # Quickstart
 ```python
 import logging
-from easy_transfer import Pipeline, PostgreSQLConnection
+
+from simple_transfer import MySQLConnection, Pipeline, PostgreSQLConnection
 
 logging.basicConfig(level=logging.INFO)
+
 
 source_connection = PostgreSQLConnection(
     host="source-database.xxx.us-east-1.rds.amazonaws.com",
@@ -16,12 +18,12 @@ source_connection = PostgreSQLConnection(
     db="postgres",
 )
 
-destination_connection = PostgreSQLConnection(
+destination_connection = MySQLConnection(
     host="destination-database.xxx.us-east-1.rds.amazonaws.com",
-    port=5432,
+    port=3306,
     username="<username>",
     password="<password>",
-    db="postgres",
+    db="my_db",
 )
 
 pipeline = Pipeline(
@@ -29,11 +31,12 @@ pipeline = Pipeline(
     source_schema="public",
     source_table="source_table",
     destination_connection=destination_connection,
-    destination_schema="public",
+    destination_schema="my_db",
     destination_table="destination_table",
     inject_mode="swap",
 )
 pipeline.execute()
+
 
 ```
 

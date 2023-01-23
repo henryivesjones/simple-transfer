@@ -1,5 +1,5 @@
 [project]
-name = "easy-transfer"
+name = "simple-transfer"
 version = "0.1.1"
 authors = [
   { name="Henry Jones", email="henryivesjones@gmail.com" },

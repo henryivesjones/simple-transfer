@@ -5,10 +5,9 @@ from uuid import uuid4
 import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
-
-from easy_transfer.column import Column
-from easy_transfer.config import EASY_TRANSFER_CONFIG
-from easy_transfer.connection import Connection, NotConnectedException
+from simple_transfer.column import Column
+from simple_transfer.config import SIMPLE_TRANSFER_CONFIG
+from simple_transfer.connection import Connection, NotConnectedException
 
 TABLE_COLUMNS_QUERY = """
 select column_name as column
@@ -45,7 +44,7 @@ RENAME TO "{new_table}";
 
 class PostgreSQLConnection(Connection):
     """
-    The interface with which the easy-transfer package interacts with a PostgreSQL database.
+    The interface with which the simple-transfer package interacts with a PostgreSQL database.
     This class implements the `Connection` interface.
     """
 
@@ -69,7 +68,7 @@ class PostgreSQLConnection(Connection):
             password=self.password,
             database=self.db,
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Connected to PostgreSQL server `{self.host}:{self.port}`")
 
     def close(self):
@@ -78,7 +77,7 @@ class PostgreSQLConnection(Connection):
         if self.conn.closed:
             return
         self.conn.close()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Disconnected from PostgreSQL server `{self.host}:{self.port}`"
             )
@@ -87,7 +86,7 @@ class PostgreSQLConnection(Connection):
     @staticmethod
     def _cursor_fetch_generator(
         cursor: psycopg2.extensions.cursor,
-        batch_size: int = EASY_TRANSFER_CONFIG.BATCH_SIZE,
+        batch_size: int = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
     ):
         index = 0
         while True:
@@ -97,7 +96,7 @@ class PostgreSQLConnection(Connection):
             for record in batch:
                 yield record
                 index += 1
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(f"Returned {index} rows")
         cursor.close()
 
@@ -105,13 +104,13 @@ class PostgreSQLConnection(Connection):
         self,
         query: str,
         args: Optional[Sequence] = None,
-        batch_size: int = EASY_TRANSFER_CONFIG.BATCH_SIZE,
+        batch_size: int = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
     ) -> Generator[Tuple, None, None]:
         if self.conn is None:
             raise NotConnectedException()
-        cursor = self.conn.cursor(name=f"easy-transfer-cursor-{uuid4().hex}")
-        cursor.itersize = EASY_TRANSFER_CONFIG.BATCH_SIZE
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        cursor = self.conn.cursor(name=f"simple-transfer-cursor-{uuid4().hex}")
+        cursor.itersize = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Executing query:\n{query}")
         cursor.execute(query, vars=args)
         return self._cursor_fetch_generator(cursor, batch_size=batch_size)
@@ -121,7 +120,7 @@ class PostgreSQLConnection(Connection):
             raise NotConnectedException()
         with self.conn:
             with self.conn.cursor() as cursor:
-                if EASY_TRANSFER_CONFIG.VERBOSE:
+                if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                     logging.info(f"Executing query:\n{query}")
                 cursor.execute(query, vars=args)
 
@@ -130,14 +129,14 @@ class PostgreSQLConnection(Connection):
             raise NotConnectedException()
         with self.conn:
             with self.conn.cursor() as cursor:
-                if EASY_TRANSFER_CONFIG.VERBOSE:
+                if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                     logging.info("Starting transaction")
                 for query, q_args in zip(queries, args):
-                    if EASY_TRANSFER_CONFIG.VERBOSE:
+                    if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                         logging.info(f"Executing query:\n{query}")
                     cursor.execute(query, vars=q_args)
                 self.conn.commit()
-                if EASY_TRANSFER_CONFIG.VERBOSE:
+                if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                     logging.info("Ending transaction")
 
     def extract_table_ddl(self, schema: str, table: str) -> Iterable[Column]:
@@ -173,13 +172,13 @@ class PostgreSQLConnection(Connection):
             BASE_SELECT_STAR_TABLE_QUERY.format(
                 schema=schema, table=table, where=f_where
             ),
-            batch_size=EASY_TRANSFER_CONFIG.BATCH_SIZE,
+            batch_size=SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
         )
 
     def import_csv(self, schema: str, table: str, f: TextIO):
         if self.conn is None:
             raise NotConnectedException()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Executing query:\nCOPY {schema}.{table} from STDIN DELIMITER ',' CSV HEADER;",
             )

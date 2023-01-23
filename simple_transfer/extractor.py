@@ -5,9 +5,8 @@ import os
 from typing import Optional, TextIO
 
 import smart_open
-
-from easy_transfer.config import EASY_TRANSFER_CONFIG
-from easy_transfer.connection import Connection
+from simple_transfer.config import SIMPLE_TRANSFER_CONFIG
+from simple_transfer.connection import Connection
 
 
 class Extractor:
@@ -58,12 +57,12 @@ class Extractor:
         self.csv_file = smart_open.open(
             self.csv_destination, "w", transport_params=self.transport_params
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Opened file `{self.csv_destination}`")
         self.ddl_file = smart_open.open(
             self.ddl_destination, "w", transport_params=self.transport_params
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Opened file `{self.ddl_destination}`")
         return self
 
@@ -71,7 +70,7 @@ class Extractor:
         self.connection.close()
         self.csv_file.close()
         self.ddl_file.close()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Closed file `{self.csv_destination}`")
             logging.info(f"Closed file `{self.ddl_destination}`")
 
@@ -79,13 +78,13 @@ class Extractor:
         """
         Executes the extraction.
         """
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Extracting columns from information schema for `{self.schema}`.`{self.table}`"
             )
         columns = self.connection.extract_table_ddl(self.schema, self.table)
         self.ddl_file.write(json.dumps([c.to_dict() for c in columns], default=str))
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 f"Extracting data from `{self.schema}`.`{self.table}` to `{self.csv_destination}`"
             )

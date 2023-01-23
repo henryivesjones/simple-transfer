@@ -8,10 +8,9 @@ import mysql.connector
 import mysql.connector.connection
 import mysql.connector.cursor
 import mysql.connector.pooling
-
-from easy_transfer.column import Column
-from easy_transfer.config import EASY_TRANSFER_CONFIG
-from easy_transfer.connection import Connection, NotConnectedException
+from simple_transfer.column import Column
+from simple_transfer.config import SIMPLE_TRANSFER_CONFIG
+from simple_transfer.connection import Connection, NotConnectedException
 
 TABLE_COLUMNS_QUERY = """
 select column_name as "column"
@@ -47,7 +46,7 @@ TO {new_table};
 
 class MySQLConnection(Connection):
     """
-    The interface with which the easy-transfer package interacts with a MySQL database.
+    The interface with which the simple-transfer package interacts with a MySQL database.
     This class implements the `Connection` interface.
     """
 
@@ -77,7 +76,7 @@ class MySQLConnection(Connection):
             use_pure=False,
             allow_local_infile=True,
         )
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Connected to MySQL server `{self.host}:{self.port}`")
 
     def close(self):
@@ -86,14 +85,14 @@ class MySQLConnection(Connection):
         if not self.conn.is_connected():
             return
         self.conn.close()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Disconnected from MySQL server `{self.host}:{self.port}`")
         return
 
     @staticmethod
     def _cursor_fetch_generator(
         cursor: mysql.connector.cursor.MySQLCursor,
-        batch_size: int = EASY_TRANSFER_CONFIG.BATCH_SIZE,
+        batch_size: int = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
     ):
         index = 0
         while True:
@@ -103,7 +102,7 @@ class MySQLConnection(Connection):
             for record in batch:
                 yield record
                 index += 1
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(f"Returned {index} rows")
         cursor.close()
 
@@ -111,12 +110,12 @@ class MySQLConnection(Connection):
         self,
         query: str,
         args: Optional[Sequence] = None,
-        batch_size: int = EASY_TRANSFER_CONFIG.BATCH_SIZE,
+        batch_size: int = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
     ) -> Generator[Tuple, None, None]:
         if self.conn is None:
             raise NotConnectedException()
         cursor = self.conn.cursor()
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(f"Executing query:\n{query}")
         cursor.execute(query, params=args)
         return self._cursor_fetch_generator(cursor, batch_size=batch_size)
@@ -127,7 +126,7 @@ class MySQLConnection(Connection):
         if self.conn is None:
             raise NotConnectedException()
         with self.conn.cursor() as cursor:
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(f"Executing query:\n{query}")
             cursor.execute(query, params=args)
             self.conn.commit()
@@ -136,14 +135,14 @@ class MySQLConnection(Connection):
         if self.conn is None:
             raise NotConnectedException()
         with self.conn.cursor() as cursor:
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info("Starting transaction")
             for query, q_args in zip(queries, args):
-                if EASY_TRANSFER_CONFIG.VERBOSE:
+                if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                     logging.info(f"Executing query:\n{query}")
                 cursor.execute(query, params=q_args)
             self.conn.commit()
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info("Ending transaction")
 
     def extract_table_ddl(self, schema: str, table: str) -> Iterable[Column]:
@@ -183,7 +182,7 @@ class MySQLConnection(Connection):
             BASE_SELECT_STAR_TABLE_QUERY.format(
                 schema=schema, table=table, where=f_where
             ),
-            batch_size=EASY_TRANSFER_CONFIG.BATCH_SIZE,
+            batch_size=SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
         )
 
     def import_csv(self, schema: str, table: str, f: TextIO):
@@ -195,7 +194,7 @@ class MySQLConnection(Connection):
             csv_abs_path = os.path.abspath(f.name)
         except io.UnsupportedOperation:
             remote_file = True
-            if EASY_TRANSFER_CONFIG.VERBOSE:
+            if SIMPLE_TRANSFER_CONFIG.VERBOSE:
                 logging.info(f"File is remote, must download before uploading to MySQL")
             temp_file_name = f"temp_mysql_{uuid4().hex}.csv"
             with open(temp_file_name, "w") as temp_file:

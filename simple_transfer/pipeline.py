@@ -1,7 +1,7 @@
 import logging
 from typing import Literal, Optional
 
-from easy_transfer import EASY_TRANSFER_CONFIG, Connection, Extractor, Injector
+from simple_transfer import SIMPLE_TRANSFER_CONFIG, Connection, Extractor, Injector
 
 
 class Pipeline:
@@ -53,7 +53,7 @@ class Pipeline:
         self.inject_mode: Literal["overwrite", "append", "swap"] = inject_mode
 
     def execute(self):
-        if EASY_TRANSFER_CONFIG.VERBOSE:
+        if SIMPLE_TRANSFER_CONFIG.VERBOSE:
             logging.info(
                 "Executing pipeline from"
                 f"\nsource ({self.source_connection} `{self.source_schema}`.`{self.source_table}`)"

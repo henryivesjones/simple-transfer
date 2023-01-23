@@ -8,19 +8,19 @@ def read(fname):
 
 
 setup(
-    name="easy-transfer",
+    name="simple-transfer",
     author="Henry Jones",
     author_email="henryivesjones@gmail.com",
-    url="https://github.com/henryivesjones/easy-transfer",
+    url="https://github.com/henryivesjones/simple-transfer",
     description="A tool for moving data between relational databases.",
-    packages=["easy_transfer", "easy_transfer.connections"],
+    packages=["simple_transfer", "simple_transfer.connections"],
     package_dir={
-        "easy_transfer": "easy_transfer",
-        "easy_transfer.connections": "easy_transfer/connections",
+        "simple_transfer": "simple_transfer",
+        "simple_transfer.connections": "simple_transfer/connections",
     },
     package_data={
-        "easy_transfer": ["py.typed"],
-        "easy_transfer.connections": ["py.typed"],
+        "simple_transfer": ["py.typed"],
+        "simple_transfer.connections": ["py.typed"],
     },
     include_package_data=True,
     long_description=read("README.md"),

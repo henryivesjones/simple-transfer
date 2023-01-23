@@ -1,8 +1,8 @@
 import abc
 from typing import Generator, Iterable, Optional, Sequence, TextIO, Tuple
 
-from easy_transfer.column import Column
-from easy_transfer.config import EASY_TRANSFER_CONFIG
+from simple_transfer.column import Column
+from simple_transfer.config import SIMPLE_TRANSFER_CONFIG
 
 
 class NotConnectedException(Exception):
@@ -11,7 +11,7 @@ class NotConnectedException(Exception):
 
 class Connection(abc.ABC):
     """
-    The interface with which the easy-transfer package interacts with a database.
+    The interface with which the simple-transfer package interacts with a database.
     To add support for a new SQL dialect simply implement this class spec.
     """
 
@@ -34,7 +34,7 @@ class Connection(abc.ABC):
         self,
         query: str,
         args: Optional[Sequence] = None,
-        batch_size: int = EASY_TRANSFER_CONFIG.BATCH_SIZE,
+        batch_size: int = SIMPLE_TRANSFER_CONFIG.BATCH_SIZE,
     ) -> Generator[Tuple, None, None]:
         """
         Execute a select query on the database, return the rows as a Generator of Tuples
